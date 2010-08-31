@@ -1,0 +1,8 @@
+README
+------
+Ping Me is a GUI of ping. It will send continuous ping signal to specified
+URL/server.
+
+version: 0.1
+author: Mico Siahaan
+license: GPL
