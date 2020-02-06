@@ -1,51 +1,47 @@
 """ Ping script, using ping utility from Windows"""
 
 import sys
-from PyQt4 import QtGui, QtCore
-from Ui_pingme import Ui_PingMainWindow
-
+import subprocess
+import tkinter as tk
 
 class PingMe(object):
     def __init__(self, address_to):
         self.address_to = address_to
 
-    def pingMe(self):
-        from subprocess import Popen
-        try:
-            p = Popen(['ping', self.address_to, '-t'])
-            return p
-        except:
-            return None
+    def ping(self):
+        if sys.platform.startswith('linux'):
+            self.process = subprocess.Popen(["ping", self.address_to])
+        elif sys.platform.startswith('win'):
+            self.process = subprocess.Popen(["ping", "-t", self.address_to])
+        return self.process
 
 
-class PingMainWindow(QtGui.QMainWindow):
-    def __init__(self, parent=None):
-        super(PingMainWindow, self).__init__(parent)
-        self.ui = Ui_PingMainWindow()
-        self.ui.setupUi(self)
-        self.ui.urlLineEdit.setText('8.8.8.8')
-        self.ui.urlLineEdit.setFocus()
-        # connect
-        self.connect(self.ui.startPushButton, QtCore.SIGNAL("clicked()"), self.startPing)
-        self.connect(self.ui.stopPushButton, QtCore.SIGNAL("clicked()"), self.stopPing)
+
+class MainWindow(object):
+    def __init__(self):
+        self.address_to = "yahoo.com"
+        self.setup_ui()
+
+    def setup_ui(self):
+        self.window = tk.Tk()
+        self.window.columnconfigure(0, minsize=50)
+        self.window.rowconfigure([0,1,2], minsize=50)
+        self.ent_address = tk.Entry()
+        self.ent_address.insert(0, self.address_to)
+        self.btn_pingme = tk.Button(text="Ping Me", command=self.ping_start)
+        self.btn_stop = tk.Button(text="Stop", command=self.ping_stop)
+        self.ent_address.grid(row=0, column=0)
+        self.btn_pingme.grid(row=1, column=0)
+        self.btn_stop.grid(row=2, column=0)
+
+    def ping_start(self):
+        self.ping = PingMe(self.address_to)
+        self.ping_proc = self.ping.ping()
+
+    def ping_stop(self):
+        self.ping_proc.terminate()
 
 
-    def startPing(self):
-        url = self.ui.urlLineEdit.text()
-        pingme = PingMe(str(url))
-        self.pingproc = pingme.pingMe()
-        if self.pingproc is None:
-            QtGui.QMessageBox.waning(self,  "Proses-Gagal",  "Proses gagal dijalankan!")
-
-    def stopPing(self):        
-        self.pingproc.terminate()
-        self.close()
-
-        
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
-    QtGui.QApplication.setWindowIcon(QtGui.QIcon('images/computer.png'))
-    PingMainWindow = PingMainWindow()
-    PingMainWindow.show()
-    sys.exit(app.exec_())
-    
+    gui = MainWindow()
+    gui.window.mainloop()
